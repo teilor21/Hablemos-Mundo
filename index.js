@@ -1,7 +1,6 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,12 +11,9 @@ const io = new Server(server, {
   }
 });
 
-// Servir archivos estáticos desde la raíz del proyecto
-app.use(express.static(__dirname));
-
-// Responder a la ruta principal
+// Responder directamente en la raíz para confirmar que la app funciona
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.send('<h1>¡Servidor de APP- ELI -IDIOMAS activo y funcionando!</h1>');
 });
 
 const connectedUsers = new Map();
