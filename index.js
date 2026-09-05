@@ -1,57 +1,53 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APP ELI IDIOMAS</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body>
-    <div class="app-container">
-        <!-- BARRA LATERAL -->
-        <aside class="sidebar">
-            <div class="header-sidebar">
-                <h2>APP ELI IDIOMAS</h2>
-                <!-- Desplegable de idiomas para práctica -->
-                <div class="idioma-selector">
-                    <label for="select-idioma">Idioma de práctica:</label>
-                    <select id="select-idioma">
-                        <option value="en">Inglés - English</option>
-                        <option value="es">Español - Spanish</option>
-                        <option value="fr">Francés - Français</option>
-                        <option value="de">Alemán - Deutsch</option>
-                        <option value="it">Italiano - Italiano</option>
-                        <option value="pt">Portugués - Português</option>
-                    </select>
-                </div>
-            </div>
+const express = require('express');
+const http = require('http');
+const path = require('path');
+const { Server } = require('socket.io');
 
-            <div class="usuarios-seccion">
-                <h3>Personas en línea (<span id="contador-usuarios">0</span>)</h3>
-                <ul id="lista-usuarios" class="lista-usuarios">
-                    <!-- Lista en tiempo real de contactos conectados -->
-                </ul>
-            </div>
-        </aside>
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
-        <!-- ÁREA PRINCIPAL DE CHAT -->
-        <main class="chat-main">
-            <div class="chat-header">
-                <h3 id="chat-titulo">Chat General - APP ELI IDIOMAS</h3>
-            </div>
-            
-            <div id="mensajes-container" class="mensajes-container">
-                <p class="placeholder-text">Selecciona un contacto o escribe en el chat para iniciar la conversación.</p>
-            </div>
+// Servir archivos estáticos del proyecto
+app.use(express.static(__dirname));
 
-            <div class="chat-input-bar">
-                <input type="text" id="mensaje-input" placeholder="Escribe tu mensaje aquí..." autocomplete="off">
-                <button id="btn-enviar">Enviar</button>
-            </div>
-        </main>
-    </div>
+// Ruta principal para servir la interfaz
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
-    <script src="script.js"></script>
-</body>
-</html>
+const usuariosConectados = new Map();
+
+io.on('connection', (socket) => {
+  console.log('Usuario conectado:', socket.id);
+
+  socket.on('registrar_usuario', (nombre) => {
+    const nombreUsuario = nombre && nombre.trim() !== '' ? nombre : `Usuario_${socket.id.substring(0,4)}`;
+    usuariosConectados.set(socket.id, { id: socket.id, nombre: nombreUsuario });
+    io.emit('actualizar_usuarios', Array.from(usuariosConectados.values()));
+  });
+
+  socket.on('enviar_mensaje', (datos) => {
+    const usuario = usuariosConectados.get(socket.id);
+    io.emit('recibir_mensaje', {
+      emisorId: socket.id,
+      emisorNombre: usuario ? usuario.nombre : 'Anónimo',
+      texto: datos.texto
+    });
+  });
+
+  socket.on('disconnect', () => {
+    usuariosConectados.delete(socket.id);
+    io.emit('actualizar_usuarios', Array.from(usuariosConectados.values()));
+    console.log('Usuario desconectado:', socket.id);
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Servidor de APP ELI IDIOMAS ejecutándose en el puerto ${PORT}`);
+});
