@@ -5,27 +5,23 @@ const contadorUsuariosEl = document.getElementById('contador-usuarios');
 const mensajesContainer = document.getElementById('mensajes-container');
 const mensajeInput = document.getElementById('mensaje-input');
 const btnEnviar = document.getElementById('btn-enviar');
-const chatTitulo = document.getElementById('chat-titulo');
 
-let miNombre = prompt("Ingresa tu nombre para entrar al chat de idiomas:") || "Usuario_Anonimo";
+let miNombre = prompt("Ingresa tu nombre para entrar al chat:") || "Usuario";
 
-// Registrar usuario en el servidor al conectar
+// Conectar y registrar usuario en el servidor
 socket.emit('registrar_usuario', miNombre);
 
-// Recibir lista de usuarios conectados en tiempo real
+// Actualización en vivo de personas conectadas
 socket.on('actualizar_usuarios', (usuarios) => {
-    contadorUsuariosEl.textContent = usuarios.length;
-    listaUsuariosEl.innerHTML = '';
-
-    usuarios.forEach(user => {
-        const li = document.createElement('li');
-        li.className = 'usuario-item';
-        li.innerHTML = `<span class="status-dot"></span> ${user.nombre} ${user.id === socket.id ? '(Tú)' : ''}`;
-        listaUsuariosEl.appendChild(li);
-    });
-
-    if (usuarios.length > 0 && chatTitulo.textContent === "Selecciona un usuario en línea") {
-        chatTitulo.textContent = "Chat General - APP ELI IDIOMAS";
+    if (contadorUsuariosEl) contadorUsuariosEl.textContent = usuarios.length;
+    if (listaUsuariosEl) {
+        listaUsuariosEl.innerHTML = '';
+        usuarios.forEach(user => {
+            const li = document.createElement('li');
+            li.className = 'usuario-item';
+            li.innerHTML = `<span class="status-dot"></span> <strong>${user.nombre}</strong> ${user.id === socket.id ? '(Tú)' : ''}`;
+            listaUsuariosEl.appendChild(li);
+        });
     }
 });
 
@@ -38,13 +34,21 @@ function enviarMensaje() {
     }
 }
 
-btnEnviar.addEventListener('click', enviarMensaje);
-mensajeInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') enviarMensaje();
-});
+if (btnEnviar) {
+    btnEnviar.addEventListener('click', enviarMensaje);
+}
 
-// Recibir mensaje e insertarlo en la pantalla
+if (mensajeInput) {
+    mensajeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') enviarMensaje();
+    });
+}
+
+// Recibir mensajes en pantalla
 socket.on('recibir_mensaje', (datos) => {
+    const placeholder = document.querySelector('.placeholder-text');
+    if (placeholder) placeholder.remove();
+
     const esMio = datos.emisorId === socket.id;
     const msgDiv = document.createElement('div');
     msgDiv.className = `mensaje ${esMio ? 'mensaje-propio' : 'mensaje-recibido'}`;
