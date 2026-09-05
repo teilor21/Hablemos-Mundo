@@ -6,12 +6,10 @@ const mensajesContainer = document.getElementById('mensajes-container');
 const mensajeInput = document.getElementById('mensaje-input');
 const btnEnviar = document.getElementById('btn-enviar');
 
-let miNombre = prompt("Ingresa tu nombre para entrar al chat:") || "Usuario";
+let miNombre = prompt("Ingresa tu nombre para ingresar a APP ELI IDIOMAS:") || "Usuario";
 
-// Conectar y registrar usuario en el servidor
 socket.emit('registrar_usuario', miNombre);
 
-// Actualización en vivo de personas conectadas
 socket.on('actualizar_usuarios', (usuarios) => {
     if (contadorUsuariosEl) contadorUsuariosEl.textContent = usuarios.length;
     if (listaUsuariosEl) {
@@ -25,7 +23,6 @@ socket.on('actualizar_usuarios', (usuarios) => {
     }
 });
 
-// Enviar mensaje
 function enviarMensaje() {
     const texto = mensajeInput.value.trim();
     if (texto !== '') {
@@ -44,7 +41,6 @@ if (mensajeInput) {
     });
 }
 
-// Recibir mensajes en pantalla
 socket.on('recibir_mensaje', (datos) => {
     const placeholder = document.querySelector('.placeholder-text');
     if (placeholder) placeholder.remove();
