@@ -28,7 +28,7 @@
     <button onclick="probarConexion()">Enviar saludo al servidor</button>
   </div>
 
-  <!-- Cliente de Socket.io -->
+  <!-- Conexión a Socket.io -->
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
@@ -44,8 +44,14 @@
       statusDiv.className = 'status disconnected';
     });
 
+    // Escuchar respuesta del servidor
+    socket.on('respuesta_servidor', (mensaje) => {
+      alert(mensaje);
+    });
+
     function probarConexion() {
-      alert('¡Conexión activa con el servidor!');
+      // Enviar evento de saludo
+      socket.emit('enviar_saludo', '¡Hola desde el cliente!');
     }
   </script>
 
