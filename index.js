@@ -12,30 +12,48 @@ const io = new Server(server, {
   }
 });
 
-// Servir archivos estáticos y la página principal
+// Servir archivos estáticos directamente desde la raíz
 app.use(express.static(__dirname));
 
+// Ruta principal para cargar el cliente HTML
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Eventos de comunicación en tiempo real con Socket.io
+// Control de usuarios conectados en memoria activa
+const usuariosConectados = new Map();
+
 io.on('connection', (socket) => {
   console.log('Usuario conectado:', socket.id);
 
-  // Escuchar cuando el usuario hace clic en el botón
-  socket.on('enviar_saludo', (mensajeCliente) => {
-    console.log('Mensaje recibido del cliente:', mensajeCliente);
-    // Enviar respuesta desde el servidor de vuelta al usuario
-    socket.emit('respuesta_servidor', '¡Servidor de APP ELI IDIOMAS respondiendo en tiempo real!');
+  // Registro de nuevo usuario en el chat
+  socket.on('registrar_usuario', (nombre) => {
+    const nombreUsuario = nombre && nombre.trim() !== '' ? nombre : `Usuario_${socket.id.substring(0,4)}`;
+    usuariosConectados.set(socket.id, { id: socket.id, nombre: nombreUsuario });
+    
+    // Transmitir lista actualizada a todos los conectados
+    io.emit('actualizar_usuarios', Array.from(usuariosConectados.values()));
   });
 
+  // Recepción y retransmisión de mensajes en vivo
+  socket.on('enviar_mensaje', (datos) => {
+    const usuario = usuariosConectados.get(socket.id);
+    io.emit('recibir_mensaje', {
+      emisorId: socket.id,
+      emisorNombre: usuario ? usuario.nombre : 'Anónimo',
+      texto: datos.texto
+    });
+  });
+
+  // Desconexión de un usuario
   socket.on('disconnect', () => {
+    usuariosConectados.delete(socket.id);
+    io.emit('actualizar_usuarios', Array.from(usuariosConectados.values()));
     console.log('Usuario desconectado:', socket.id);
   });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
+  console.log(`Servidor de APP ELI IDIOMAS corriendo en el puerto ${PORT}`);
 });
