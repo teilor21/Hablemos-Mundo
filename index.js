@@ -12,10 +12,8 @@ const io = new Server(server, {
   }
 });
 
-// Servir archivos estáticos del proyecto
 app.use(express.static(__dirname));
 
-// Ruta principal para servir la interfaz
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -49,5 +47,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Servidor de APP ELI IDIOMAS ejecutándose en el puerto ${PORT}`);
+  console.log(`Servidor de APP ELI IDIOMAS corriendo en el puerto ${PORT}`);
 });
