@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APP ELI IDIOMAS</title>
+    <!-- Vinculación a los nombres de hojas de estilo posibles para evitar la pantalla blanca -->
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="estilo.css">
     <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -12,12 +14,12 @@
         <!-- BARRA LATERAL -->
         <aside class="sidebar">
             <div class="header-sidebar">
-                <h2>ELI IDIOMAS</h2>
-                <!-- Desplegable de idiomas -->
+                <h2>APP ELI IDIOMAS</h2>
                 <div class="idioma-selector">
                     <label for="select-idioma">Idioma de práctica:</label>
                     <select id="select-idioma">
-                        <option value="es">Inglés - English</option>
+                        <option value="en">Inglés - English</option>
+                        <option value="es">Español - Spanish</option>
                         <option value="fr">Francés - Français</option>
                         <option value="de">Alemán - Deutsch</option>
                         <option value="it">Italiano - Italiano</option>
@@ -29,7 +31,7 @@
             <div class="usuarios-seccion">
                 <h3>Personas en línea (<span id="contador-usuarios">0</span>)</h3>
                 <ul id="lista-usuarios" class="lista-usuarios">
-                    <!-- Aquí aparecen los usuarios conectados automáticamente -->
+                    <!-- Los usuarios conectados aparecerán aquí en vivo -->
                 </ul>
             </div>
         </aside>
@@ -37,15 +39,15 @@
         <!-- ÁREA PRINCIPAL DE CHAT -->
         <main class="chat-main">
             <div class="chat-header">
-                <h3 id="chat-titulo">Selecciona un usuario en línea</h3>
+                <h3 id="chat-titulo">Chat General - APP ELI IDIOMAS</h3>
             </div>
             
             <div id="mensajes-container" class="mensajes-container">
-                <p class="placeholder-text">Selecciona un contacto en la barra lateral para enviar mensajes.</p>
+                <p class="placeholder-text">¡Bienvenido! Selecciona un idioma arriba e inicia la conversación.</p>
             </div>
 
             <div class="chat-input-bar">
-                <input type="text" id="mensaje-input" placeholder="Escribe un mensaje..." autocomplete="off">
+                <input type="text" id="mensaje-input" placeholder="Escribe un mensaje aquí..." autocomplete="off">
                 <button id="btn-enviar">Enviar</button>
             </div>
         </main>
