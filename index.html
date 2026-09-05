@@ -3,117 +3,193 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>APP ELI IDIOMAS</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #121824; color: #e1e6ed; display: flex; height: 100vh; overflow: hidden; }
-    
-    /* Panel lateral */
-    .sidebar { width: 280px; background-color: #1a2232; border-right: 1px solid #2a3447; display: flex; flex-direction: column; }
-    .sidebar-header { padding: 20px; border-bottom: 1px solid #2a3447; }
-    .sidebar-header h2 { font-size: 18px; color: #ffffff; }
-    .user-list { list-style: none; padding: 10px; overflow-y: auto; flex: 1; }
-    .user-item { padding: 12px; border-radius: 8px; margin-bottom: 5px; background-color: #253046; display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
-    .badge { background: #0084ff; color: white; font-size: 11px; padding: 2px 6px; border-radius: 10px; }
-
-    /* Área principal de chat */
-    .chat-area { flex: 1; display: flex; flex-direction: column; background-color: #151c2c; }
-    .chat-header { padding: 20px; background-color: #1a2232; border-bottom: 1px solid #2a3447; }
-    .messages-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    
-    .message { max-width: 65%; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.4; word-wrap: break-word; }
-    .message.received { background-color: #253046; align-self: flex-start; border-bottom-left-radius: 2px; }
-    .message.sent { background-color: #0084ff; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-    .message .sender { font-size: 11px; color: #a0aec0; margin-bottom: 4px; display: block; }
-    .message.sent .sender { color: #d0e4ff; }
-
-    /* Caja para escribir */
-    .input-area { padding: 15px 20px; background-color: #1a2232; border-top: 1px solid #2a3447; display: flex; gap: 10px; }
-    .input-area input { flex: 1; background-color: #253046; border: 1px solid #344460; padding: 12px 16px; border-radius: 8px; color: white; outline: none; font-size: 14px; }
-    .input-area button { background-color: #0084ff; border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    .input-area button:hover { background-color: #006bce; }
-  </style>
-</head>
-<body>
-
-  <!-- Barra Lateral -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>Contactos</h2>
-      <small id="user-count" style="color: #0084ff;">0 activos</small>
-    </div>
-    <ul class="user-list" id="users-list"></ul>
-  </div>
-
-  <!-- Área de Chat -->
-  <div class="chat-area">
-    <div class="chat-header">
-      <h3 id="chat-title">APP ELI IDIOMAS</h3>
-      <p style="font-size: 12px; color: #a0aec0;">Salón global de intercambio</p>
-    </div>
-
-    <div class="messages-container" id="messages"></div>
-
-    <div class="input-area">
-      <input type="text" id="message-input" placeholder="Escribe un mensaje..." onkeypress="handleKeyPress(event)">
-      <button onclick="enviarMensaje()">Enviar</button>
-    </div>
-  </div>
-
+  <title>Hablemos Mundo - Chat Global</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-    let miNombre = prompt("Ingresa tu nombre para entrar a APP ELI IDIOMAS:") || "Usuario";
+</head>
+<body class="bg-slate-950 text-slate-100 h-screen flex flex-col font-sans select-none">
 
-    socket.on('connect', () => {
-      socket.emit('registrar_usuario', miNombre);
-    });
+  <!-- ENCABEZADO PRINCIPAL DE LA APLICACIÓN -->
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex justify-between items-center shadow-md">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl">🌐</span>
+      <div>
+        <h1 class="font-bold text-base text-yellow-400">Hablemos Mundo</h1>
+        <p class="text-[11px] text-slate-400" id="my-profile-info">Cargando perfil...</p>
+      </div>
+    </div>
+    
+    <button onclick="showVipModal()" class="bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-yellow-500/20">
+      👑 Ser VIP
+    </button>
+  </header>
 
-    socket.on('actualizar_usuarios', (usuarios) => {
-      const usersList = document.getElementById('users-list');
-      const userCount = document.getElementById('user-count');
-      usersList.innerHTML = '';
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- BARRA LATERAL -->
+    <aside class="w-80 bg-slate-900 border-r border-slate-800 flex flex-col">
       
-      userCount.textContent = `${usuarios.length} activos`;
+      <!-- MI PERFIL (FOTO, NOMBRE, NACIONALIDAD E IDIOMAS) -->
+      <div class="p-3 bg-slate-950/60 border-b border-slate-800 flex flex-col gap-2.5">
+        <div class="flex items-center gap-3">
+          <label for="avatar-input" class="relative group cursor-pointer" title="Cambiar foto de perfil">
+            <div id="my-avatar-preview" class="w-10 h-10 rounded-full bg-slate-800 border-2 border-yellow-500/60 flex items-center justify-center text-yellow-400 font-bold overflow-hidden shadow">
+              👤
+            </div>
+            <div class="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center text-[10px] text-white font-bold transition">
+              📷
+            </div>
+          </label>
+          <input type="file" id="avatar-input" accept="image/*" class="hidden">
 
-      usuarios.forEach(u => {
-        const li = document.createElement('li');
-        li.className = 'user-item';
-        li.innerHTML = `<span>${u.nombre} ${u.id === socket.id ? '(Tú)' : ''}</span> <span class="badge">En línea</span>`;
-        usersList.appendChild(li);
-      });
-    });
+          <div class="flex-1 min-w-0">
+            <input type="text" id="username-input" placeholder="Tu nombre..." class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-yellow-500 font-medium">
+          </div>
+        </div>
 
-    socket.on('recibir_mensaje', (datos) => {
-      const messagesContainer = document.getElementById('messages');
-      const esMio = datos.emisorId === socket.id;
-      
-      const msgDiv = document.createElement('div');
-      msgDiv.className = `message ${esMio ? 'sent' : 'received'}`;
-      msgDiv.innerHTML = `
-        <span class="sender">${esMio ? 'Tú' : datos.emisorNombre}</span>
-        <div>${datos.texto}</div>
-      `;
+        <!-- NACIONALIDAD Y PAÍS -->
+        <div>
+          <label class="block text-[10px] text-slate-400 font-bold uppercase mb-1">Tu Nacionalidad</label>
+          <select id="country-select" onchange="updateProfileInfo()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-yellow-500">
+            <option value="🇨🇴 Colombia">🇨🇴 Colombia</option>
+            <option value="🇲🇽 México">🇲🇽 México</option>
+            <option value="🇪🇸 España">🇪🇸 España</option>
+            <option value="🇦🇷 Argentina">🇦🇷 Argentina</option>
+            <option value="🇺🇸 EE.UU.">🇺🇸 EE.UU.</option>
+            <option value="🇧🇷 Brasil">🇧🇷 Brasil</option>
+            <option value="🇫🇷 Francia">🇫🇷 Francia</option>
+            <option value="🇩🇪 Alemania">🇩🇪 Alemania</option>
+            <option value="🇮🇹 Italia">🇮🇹 Italia</option>
+            <option value="🌎 Otro">🌎 Otro país</option>
+          </select>
+        </div>
 
-      messagesContainer.appendChild(msgDiv);
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    });
+        <!-- IDIOMAS A APRENDER (MÁXIMO 3 GRATIS) -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-[10px] text-slate-400 font-bold uppercase">Quiero aprender (Máx. 3)</label>
+            <span id="languages-count" class="text-[10px] text-yellow-400 font-bold">0/3</span>
+          </div>
+          <div id="languages-container" class="grid grid-cols-2 gap-1 text-[11px]">
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded border border-slate-800 cursor-pointer hover:bg-slate-800">
+              <input type="checkbox" value="🇺🇸 Inglés" onchange="handleLanguageSelect(this)" class="lang-checkbox accent-yellow-500"> 🇺🇸 Inglés
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded border border-slate-800 cursor-pointer hover:bg-slate-800">
+              <input type="checkbox" value="🇫🇷 Francés" onchange="handleLanguageSelect(this)" class="lang-checkbox accent-yellow-500"> 🇫🇷 Francés
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded border border-slate-800 cursor-pointer hover:bg-slate-800">
+              <input type="checkbox" value="🇮🇹 Italiano" onchange="handleLanguageSelect(this)" class="lang-checkbox accent-yellow-500"> 🇮🇹 Italiano
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded border border-slate-800 cursor-pointer hover:bg-slate-800">
+              <input type="checkbox" value="🇩🇪 Alemán" onchange="handleLanguageSelect(this)" class="lang-checkbox accent-yellow-500"> 🇩🇪 Alemán
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded border border-slate-800 cursor-pointer hover:bg-slate-800">
+              <input type="checkbox" value="🇧🇷 Portugués" onchange="handleLanguageSelect(this)" class="lang-checkbox accent-yellow-500"> 🇧🇷 Portugués
+            </label>
+            <label class="flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded border border-slate-800 cursor-pointer hover:bg-slate-800">
+              <input type="checkbox" value="🇨🇳 Chino" onchange="handleLanguageSelect(this)" class="lang-checkbox accent-yellow-500"> 🇨🇳 Chino
+            </label>
+          </div>
+        </div>
+      </div>
 
-    function enviarMensaje() {
-      const input = document.getElementById('message-input');
-      const texto = input.value.trim();
-      
-      if (texto !== '') {
-        socket.emit('enviar_mensaje', { texto: texto });
-        input.value = '';
-      }
-    }
+      <!-- AJUSTES (ARCHIVADOS Y BLOQUEADOS) -->
+      <div class="p-2.5 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between gap-2">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ajustes</span>
+        
+        <div class="flex gap-1.5">
+          <button onclick="toggleArchivedModal()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-slate-700 rounded-md text-[11px] font-semibold transition flex items-center gap-1">
+            📁 Archivados <span id="archived-count" class="bg-yellow-500/20 text-yellow-300 px-1 rounded text-[10px]">0</span>
+          </button>
 
-    function handleKeyPress(event) {
-      if (event.key === 'Enter') {
-        enviarMensaje();
-      }
-    }
-  </script>
+          <button onclick="toggleBlockedListModal()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-red-400 border border-slate-700 rounded-md text-[11px] font-semibold transition flex items-center gap-1">
+            🚫 Bloqueados
+          </button>
+        </div>
+      </div>
+
+      <!-- LISTA DE USUARIOS EN LÍNEA -->
+      <div class="p-2.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-800 flex justify-between items-center bg-slate-950/30">
+        <span>Usuarios en línea</span>
+        <span id="users-count" class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full text-[10px]">0</span>
+      </div>
+
+      <div id="users-list" class="flex-1 overflow-y-auto p-2 space-y-1.5">
+        <!-- Se llena dinámicamente -->
+      </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL DE CHAT -->
+    <main class="flex-1 flex flex-col bg-slate-950">
+
+      <!-- ENCABEZADO DEL CHAT ACTIVO -->
+      <div id="chat-header" class="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="active-avatar-container" class="relative">
+            <div id="active-user-avatar" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-sm text-yellow-400 overflow-hidden">
+              👤
+            </div>
+          </div>
+          <div>
+            <h3 id="active-user-name" class="text-sm font-semibold text-white">Selecciona un usuario</h3>
+            <p id="active-user-status" class="text-[11px] text-slate-400">Haz clic en la lista para iniciar la conversación</p>
+          </div>
+        </div>
+
+        <!-- BOTONES DE LLAMADA Y ACCIONES -->
+        <div class="flex items-center gap-2">
+          <button onclick="startCall('audio')" class="p-2 bg-slate-800 hover:bg-slate-700 text-green-400 border border-slate-700 rounded-lg text-xs transition flex items-center gap-1" title="Llamada de Voz">
+            📞
+          </button>
+
+          <button onclick="startCall('video')" class="p-2 bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 rounded-lg text-xs transition flex items-center gap-1" title="Videollamada en Alta Calidad">
+            📹
+          </button>
+          
+          <button onclick="archiveCurrentChat()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs transition flex items-center gap-1" title="Archivar chat">
+            📥
+          </button>
+
+          <button onclick="blockCurrentContact()" class="p-2 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-500/30 rounded-lg text-xs transition flex items-center gap-1" title="Bloquear contacto">
+            🚫
+          </button>
+        </div>
+      </div>
+
+      <!-- ÁREA DE MENSAJES -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3">
+        <div class="text-center text-slate-500 text-xs py-12">
+          Selecciona un contacto en la barra lateral para enviar mensajes.
+        </div>
+      </div>
+
+      <!-- FORMULARIO DE ENVÍO CON ADJUNTOS Y NOTAS DE VOZ -->
+      <form id="chat-form" class="p-3 bg-slate-900 border-t border-slate-800 flex items-center gap-2">
+        
+        <!-- BOTÓN ADJUNTAR MULTIMEDIA -->
+        <label for="media-input" class="p-2 bg-slate-800 hover:bg-slate-700 text-yellow-400 border border-slate-700 rounded-lg cursor-pointer transition flex items-center justify-center text-sm" title="Adjuntar foto o video">
+          📎
+        </label>
+        <input type="file" id="media-input" accept="image/*,video/*" class="hidden">
+
+        <!-- BOTÓN NOTA DE VOZ -->
+        <button type="button" id="mic-btn" onclick="toggleVoiceRecord()" class="p-2 bg-slate-800 hover:bg-slate-700 text-red-400 border border-slate-700 rounded-lg transition flex items-center justify-center text-sm" title="Grabar nota de voz">
+          🎙️
+        </button>
+
+        <!-- ENTRADA DE TEXTO -->
+        <input id="message-input" type="text" placeholder="Escribe un mensaje..." autocomplete="off" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2 text-xs text-white focus:outline-none focus:border-yellow-500">
+        
+        <button type="submit" class="bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-bold px-5 py-2 rounded-lg text-xs transition">
+          Enviar
+        </button>
+      </form>
+
+    </main>
+
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
